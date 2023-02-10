@@ -16,11 +16,10 @@ CREATE TABLE IF NOT EXISTS accounts
 );
 
 CREATE TRIGGER IF NOT EXISTS check_username_validity
-    BEFORE INSERT
-    ON accounts
+BEFORE INSERT ON accounts
 BEGIN
-    SELECT CASE
-               WHEN new.username NOT LIKE '^[a-zA-Z0-9]+$' THEN
-                   RAISE(ABORT, 'Username can only contain letters and numbers')
-               END;
+   SELECT CASE
+      WHEN new.username NOT LIKE '^[a-zA-Z0-9_]+$' THEN
+         RAISE (ABORT, 'Username can only contain letters, numbers, and underscores')
+      END;
 END;
