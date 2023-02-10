@@ -12,19 +12,19 @@ import (
 // setup logger
 var logger *slog.Logger
 
-func SetLogger() {
+func SetLogger() error {
 	file, err := os.OpenFile(".rene.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY,
 		0666)
 	if err != nil {
-		logger = slog.New(slog.NewTextHandler(os.Stdout))
-		logger.Error(`
-Couldn't create/open the log file, logs will not be saved due to the following
-error:`, err)
+		logger = slog.New(slog.HandlerOptions{AddSource: true}.
+			NewTextHandler(os.Stdout))
 	} else {
 		mw := io.MultiWriter(os.Stdout, file)
-		logger = slog.New(slog.NewTextHandler(mw))
+		logger = slog.New(slog.HandlerOptions{AddSource: true}.
+			NewTextHandler(mw))
 	}
 	slog.SetDefault(logger)
+	return err
 }
 
 // setup db
