@@ -1,0 +1,12 @@
+#+title: To-Implement Features
+
+
+* TODO Tweet template
+I'm thinking of creating a global template for text tweets, something like that:
+
+#+begin_example
+Intro text
+{tweet}
+outro text
+#+end_example
+it also should be configurable per account.
