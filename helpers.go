@@ -45,7 +45,7 @@ func timeFrameReader(msg string) (tf string) {
 	return start + "-" + end
 }
 
-func (f Field) FieldReader() error {
+func (f field) FieldReader() error {
 	if f.readFunc != nil {
 		res := f.readFunc(f.message)
 		f.value = res
