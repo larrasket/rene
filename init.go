@@ -33,14 +33,14 @@ var Accounts []account
 var modDes = `
 Moderator can be used to add entries to the publishing database in production
 (i.e. without editing) via sending a direct massage for the accounts. You can
-leave this empty empty.`
+leave this empty: `
 
 var actDes = `
-Do you want to set active hours? If the answery is n, René will only work in the
-timeframe that you will set. (You can customize this per account later or change
-it entirely). Please answer either with n or the starting time frame, you will
-be promoted to enter the end time after this.
-Please use the 24h fromat (example hh:mm): `
+Do you want to set active hours? If the answery is not n, René will only work in
+the timeframe that you will set. (You can customize this per account later or
+change it entirely). Please answer either with n or the starting time frame, you
+will be promoted to enter the end time after this.  Please use the 24h fromat
+(example hh:mm): `
 
 var consumerDes = `Enter twitter consumer key for your application: `
 var consumerSecDes = `Enter twitter secret key for your application: `
@@ -91,19 +91,19 @@ error:`, err)
 		}
 	}(confRead)
 
-	for _, f := range Feilds {
-		err = confRead.QueryRow(f.key).Scan(&f.value)
+	for k := range Feilds {
+		err = confRead.QueryRow(Feilds[k].key).Scan(&Feilds[k].value)
 		if errors.Is(err, sql.ErrNoRows) {
-			err = f.FieldReader()
+			err = Feilds[k].FieldReader()
 			if err != nil {
 				logger.Info(
 					`Couldn't read the field %s due to the following error: %s`,
-					f.key, err)
-				if f.required {
+					Feilds[k].key, err)
+				if Feilds[k].required {
 					os.Exit(1)
 				}
 			}
-			_, err = confWrite.Exec(f.key, f.value)
+			_, err = confWrite.Exec(Feilds[k].key, Feilds[k].value)
 			if err != nil {
 				logger.Error(`Couldn't write to the database`, err)
 				os.Exit(1)
@@ -112,6 +112,7 @@ error:`, err)
 			logger.Error(`Couldn't connect to database`, err)
 			os.Exit(1)
 		}
+
 	}
 	rows, err := Db.Query(
 		`SELECT username, account_token, account_secret FROM accounts`)
@@ -141,7 +142,7 @@ error:`, err)
 	AuthConfig = &oauth1.Config{
 		ConsumerKey:    Feilds[2].value,
 		ConsumerSecret: Feilds[3].value,
-		CallbackURL:    "https://github.com/salehmu/rene",
+		CallbackURL:    "oob",
 		Endpoint:       twauth.AuthorizeEndpoint,
 	}
 }

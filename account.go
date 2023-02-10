@@ -40,6 +40,11 @@ func AddAccount(username string) (err error) {
 		logger.Error(fmt.Sprintf(`The provided username %s doesn't match %s`,
 			username, u.ScreenName), err)
 	}
+
+	stmt := `INSERT INTO accounts (username, account_token, account_secret)
+	VALUES ("%s", "%s", "%s")`
+	_, err = Db.Exec(fmt.Sprintf(stmt, username, tok, sec))
+
 	return
 }
 

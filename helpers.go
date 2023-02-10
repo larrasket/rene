@@ -1,9 +1,7 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -25,14 +23,14 @@ func isValidTimeFormat(time string) bool {
 }
 
 func timeFrameReader(msg string) (tf string) {
-	fmt.Println(msg)
+	fmt.Print(msg)
 	reading := func(s bool) (res string) {
 		fmt.Scanln(&res)
 		for !isValidTimeFormat(res) {
 			if res == "n" && s {
 				return res
 			}
-			fmt.Println("Time is not in hh:mm fromat, please try again")
+			fmt.Print("Time is not in hh:mm fromat, please try again: ")
 			fmt.Scanln(&res)
 		}
 		return
@@ -41,18 +39,20 @@ func timeFrameReader(msg string) (tf string) {
 	if start == "n" {
 		return "00:00-00:00"
 	}
+	fmt.Print("Enter end hour: ")
 	end := reading(false)
 	return start + "-" + end
 }
 
-func (f field) FieldReader() error {
+func (f *field) FieldReader() error {
 	if f.readFunc != nil {
 		res := f.readFunc(f.message)
 		f.value = res
 	} else {
-		fmt.Println(f.message)
-		reader := bufio.NewReader(os.Stdin)
-		res, err := reader.ReadString('\n')
+		fmt.Print(f.message)
+
+		var res string
+		_, err := fmt.Scanf("%s", &res)
 		if err != nil {
 			return err
 		}
