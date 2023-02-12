@@ -3,12 +3,17 @@ package main
 import (
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 )
 
 var client *twitter.Client
+
+type authorizer struct{}
+
+func (a *authorizer) Add(req *http.Request) {}
 
 func AddAccount(username string) (err error) {
 
@@ -24,8 +29,10 @@ func AddAccount(username string) (err error) {
 		return
 	}
 	token := oauth1.NewToken(tok, sec)
+
 	httpClient := AuthConfig.Client(oauth1.NoContext, token)
 	client = twitter.NewClient(httpClient)
+
 	u, res, err := client.Accounts.
 		VerifyCredentials(&twitter.AccountVerifyParams{})
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	_ "embed"
 	"errors"
+	"net/http"
 	"os"
 
 	twauth "github.com/dghubble/oauth1/twitter"
@@ -26,7 +27,8 @@ type field struct {
 }
 
 type account struct {
-	tok, stok, username string
+	tok, sec, username string
+	client             *http.Client
 }
 
 var Accounts []account
@@ -130,7 +132,7 @@ error:`, err)
 
 	for rows.Next() {
 		var acc account
-		err = rows.Scan(&acc.username, &acc.tok, &acc.stok)
+		err = rows.Scan(&acc.username, &acc.tok, &acc.sec)
 		if err != nil {
 			logger.Error("error while reading accounts", err)
 			os.Exit(1)

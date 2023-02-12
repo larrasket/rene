@@ -11,7 +11,7 @@ var rootCmd = &cobra.Command{
 	Use:   "rene",
 	Short: "René, twitter figur bot manager and automater",
 	Run: func(cmd *cobra.Command, args []string) {
-
+		ListenAndServe()
 	},
 }
 

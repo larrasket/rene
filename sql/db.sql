@@ -1,10 +1,8 @@
 CREATE TABLE IF NOT EXISTS metadata
 (
-    id                INTEGER PRIMARY KEY,
-    key               TEXT NOT NULL UNIQUE,
-    value             TEXT NOT NULL,
-    creation_date     TEXT NOT NULL DEFAULT (DATETIME('now', 'localtime')),
-    modification_date TEXT NOT NULL DEFAULT (DATETIME('now', 'localtime'))
+    id    INTEGER PRIMARY KEY,
+    key   TEXT NOT NULL UNIQUE,
+    value TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS accounts
@@ -13,4 +11,12 @@ CREATE TABLE IF NOT EXISTS accounts
     username       TEXT NOT NULL UNIQUE,
     account_token  TEXT NOT NULL,
     account_secret TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS queue
+(
+    id      INTEGER PRIMARY KEY,
+    account TEXT,
+    text    TEXT,
+    CONSTRAINT fk_accounts FOREIGN KEY (account) REFERENCES accounts (username)
 );

@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/dghubble/go-twitter v0.0.0-20221104224141-912508c3888b
 	github.com/dghubble/oauth1 v0.7.2
+	github.com/g8rswimmer/go-twitter/v2 v2.1.5
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/spf13/cobra v1.6.1
 	golang.org/x/exp v0.0.0-20230131160201-f062dba9d201

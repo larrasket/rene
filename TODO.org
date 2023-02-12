@@ -1,4 +1,4 @@
-#+title: To-Implement Features
+#+title: Todo
 
 
 * TODO Tweet template
@@ -10,3 +10,4 @@ Intro text
 outro text
 #+end_example
 it also should be configurable per account.
+* TODO Code is very ugly and inconsistent. Refactoring is needed.
