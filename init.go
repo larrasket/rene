@@ -93,9 +93,11 @@ error:`, err)
 		}
 	}(confRead)
 
+	var notComplteInit bool
 	for k := range Feilds {
 		err = confRead.QueryRow(Feilds[k].key).Scan(&Feilds[k].value)
 		if errors.Is(err, sql.ErrNoRows) {
+			notComplteInit = true
 			err = Feilds[k].FieldReader()
 			if err != nil {
 				logger.Info(
@@ -146,5 +148,9 @@ error:`, err)
 		ConsumerSecret: Feilds[3].value,
 		CallbackURL:    "oob",
 		Endpoint:       twauth.AuthorizeEndpoint,
+	}
+
+	if notComplteInit {
+		os.Exit(0)
 	}
 }
