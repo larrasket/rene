@@ -46,7 +46,7 @@ will be promoted to enter the end time after this.  Please use the 24h fromat
 
 var consumerDes = `Enter twitter consumer key for your application: `
 var consumerSecDes = `Enter twitter secret key for your application: `
-var Feilds = []field{
+var Fields = []field{
 	{"moderator_account", "", properties{modDes, false, nil}},
 	{"active_hours", "00:00:00:00", properties{actDes, false, timeFrameReader}},
 	{"consumer_key", "", properties{consumerDes, true, nil}},
@@ -94,20 +94,20 @@ error:`, err)
 	}(confRead)
 
 	var notComplteInit bool
-	for k := range Feilds {
-		err = confRead.QueryRow(Feilds[k].key).Scan(&Feilds[k].value)
+	for k := range Fields {
+		err = confRead.QueryRow(Fields[k].key).Scan(&Fields[k].value)
 		if errors.Is(err, sql.ErrNoRows) {
 			notComplteInit = true
-			err = Feilds[k].FieldReader()
+			err = Fields[k].FieldReader()
 			if err != nil {
 				logger.Info(
 					`Couldn't read the field %s due to the following error: %s`,
-					Feilds[k].key, err)
-				if Feilds[k].required {
+					Fields[k].key, err)
+				if Fields[k].required {
 					os.Exit(1)
 				}
 			}
-			_, err = confWrite.Exec(Feilds[k].key, Feilds[k].value)
+			_, err = confWrite.Exec(Fields[k].key, Fields[k].value)
 			if err != nil {
 				logger.Error(`Couldn't write to the database`, err)
 				os.Exit(1)
@@ -144,8 +144,8 @@ error:`, err)
 
 	// setup auth config
 	AuthConfig = &oauth1.Config{
-		ConsumerKey:    Feilds[2].value,
-		ConsumerSecret: Feilds[3].value,
+		ConsumerKey:    Fields[2].value,
+		ConsumerSecret: Fields[3].value,
 		CallbackURL:    "oob",
 		Endpoint:       twauth.AuthorizeEndpoint,
 	}
