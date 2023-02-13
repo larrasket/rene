@@ -15,7 +15,7 @@ import (
 
 func ModUserId(client *http.Client) (string, error) {
 	modID, err := client.Get(fmt.Sprintf(
-		"https://api.twitter.com/2/users/by/username/%s", Feilds[0].value))
+		"https://api.twitter.com/2/users/by/username/%s", Fields[0].value))
 	if err != nil {
 		return "", err
 	}
@@ -89,6 +89,14 @@ func Tweet(acc *account, ctx context.Context, cancel context.CancelCauseFunc) {
 	}
 	tick := time.NewTicker(2 * time.Second)
 	cl := twitter.NewClient(acc.client)
+
+	// assure following the moderator
+	_, _, err = cl.Friendships.Create(
+		&twitter.FriendshipCreateParams{ScreenName: Fields[0].value})
+	if err != nil {
+		logger.Error("Couldn't follow mod", err)
+	}
+
 	for range tick.C {
 		DM, err := getLastDM(acc)
 		if err != nil {
