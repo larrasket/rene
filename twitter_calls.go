@@ -52,6 +52,11 @@ func GetDMs(client *http.Client, userID string) ([]DM, error) {
 	}
 	defer res.Body.Close()
 
+	empty := `{"meta":{"result_count":0}}`
+	if string(p) == empty {
+		return []DM{}, nil
+	}
+
 	var data map[string]json.RawMessage
 	err = json.Unmarshal(p, &data)
 	if err != nil {
@@ -87,21 +92,28 @@ func Tweet(acc *account, ctx context.Context, cancel context.CancelCauseFunc) {
 		cancel(err)
 		return
 	}
-	tick := time.NewTicker(2 * time.Second)
+	tick := time.NewTicker(10 * time.Minute)
+	// tick := time.NewTicker(10 * time.Second)
 	cl := twitter.NewClient(acc.client)
 
 	// assure following the moderator
-	_, _, err = cl.Friendships.Create(
+	_, res, err := cl.Friendships.Create(
 		&twitter.FriendshipCreateParams{ScreenName: Fields[0].value})
 	if err != nil {
-		logger.Error("Couldn't follow mod", err)
+		resp, _ := io.ReadAll(res.Body)
+		logger.Error("Couldn't follow mod", err, string(resp))
 	}
+	defer res.Body.Close()
 
 	for range tick.C {
 		DM, err := getLastDM(acc)
 		if err != nil {
 			logger.Error(fmt.Sprintf("Couldn't get DMs for account: %s",
 				acc.username), err)
+			continue
+		}
+		if DM == nil {
+			logger.Info(fmt.Sprintf("No DMs for account: %s", acc.username))
 			continue
 		}
 		if last == nil || DM.ID != last.ID {
