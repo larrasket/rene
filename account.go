@@ -1,8 +1,8 @@
 package main
 
 import (
-	"errors"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/dghubble/go-twitter/twitter"
@@ -15,18 +15,15 @@ type authorizer struct{}
 
 func (a *authorizer) Add(req *http.Request) {}
 
-func AddAccount(username string) (err error) {
-
+func AddAccount(username string) error {
 	requestToken, err := login()
 	if err != nil {
-		logger.Error("Request Token Phase", err)
-		return
+		return fmt.Errorf("Request Token Phase: %s", err)
 	}
 
 	tok, sec, err := receivePIN(requestToken)
 	if err != nil {
-		logger.Error("Access Token Phase", err)
-		return
+		return fmt.Errorf("Access Token Phase: %s", err)
 	}
 	token := oauth1.NewToken(tok, sec)
 
@@ -36,34 +33,34 @@ func AddAccount(username string) (err error) {
 	u, res, err := client.Accounts.
 		VerifyCredentials(&twitter.AccountVerifyParams{})
 	if err != nil {
-		var p []byte
-		res.Body.Read(p)
-		logger.Error(`Something wrong happened in verfiny credentails`, err,
-			res.Request.URL.String(), res.StatusCode, string(p))
-		return
+		resStr, _ := io.ReadAll(res.Body)
+
+		return fmt.Errorf(
+			`Something wrong happened in verfiny credentails: %s, response body:
+%s status code: %s: `, err, string(resStr), res.StatusCode)
 	}
+	defer res.Body.Close()
+
 	if u.ScreenName != username {
-		err = errors.New(`username doesn't match`)
-		logger.Error(fmt.Sprintf(`The provided username %s doesn't match %s`,
-			username, u.ScreenName), err)
+		return fmt.Errorf(`The provided username %s doesn't match %s`,
+			username, u.ScreenName)
 	}
 
 	stmt := `INSERT INTO accounts (username, account_token, account_secret)
 	VALUES ("%s", "%s", "%s")`
 	_, err = Db.Exec(fmt.Sprintf(stmt, username, tok, sec))
-
-	return
+	return err
 }
 
 func login() (requestToken string, err error) {
 	requestToken, _, err = AuthConfig.RequestToken()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf(`Couldn't request token: `, err)
 	}
 
 	authorizationURL, err := AuthConfig.AuthorizationURL(requestToken)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf(`Couldn't get authorization URL`, err)
 	}
 
 	fmt.Printf("Open this URL in your browser:\n%s\n",
