@@ -103,6 +103,19 @@ func Tweet(acc *account, ctx context.Context, cancel context.CancelCauseFunc) {
 		resp, _ := io.ReadAll(res.Body)
 		logger.Error("Couldn't follow mod", err, string(resp))
 	}
+
+	// follow other accounts
+	for _, acc := range Accounts {
+
+		_, res, err := cl.Friendships.Create(
+			&twitter.FriendshipCreateParams{ScreenName: acc.username})
+		if err != nil {
+			resp, _ := io.ReadAll(res.Body)
+			logger.Error("Couldn't follow friend", err, string(resp))
+		}
+
+	}
+
 	defer res.Body.Close()
 
 	for range tick.C {
