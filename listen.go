@@ -10,7 +10,7 @@ func ListenAndServe() {
 	ctx, cancel := context.WithCancelCause(context.Background())
 	defer cancel(nil)
 	for k := range Accounts {
-		token := oauth1.NewToken(Accounts[0].tok, Accounts[0].sec)
+		token := oauth1.NewToken(Accounts[k].tok, Accounts[k].sec)
 		Accounts[k].client = AuthConfig.Client(oauth1.NoContext, token)
 		select {
 		case <-ctx.Done():

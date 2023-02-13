@@ -92,8 +92,8 @@ func Tweet(acc *account, ctx context.Context, cancel context.CancelCauseFunc) {
 		cancel(err)
 		return
 	}
-	tick := time.NewTicker(10 * time.Minute)
-	// tick := time.NewTicker(10 * time.Second)
+	// tick := time.NewTicker(10 * time.Minute)
+	tick := time.NewTicker(3 * time.Second)
 	cl := twitter.NewClient(acc.client)
 
 	// assure following the moderator
@@ -105,10 +105,13 @@ func Tweet(acc *account, ctx context.Context, cancel context.CancelCauseFunc) {
 	}
 
 	// follow other accounts
-	for _, acc := range Accounts {
+	for _, a := range Accounts {
 
+		if a.username == acc.username {
+			continue
+		}
 		_, res, err := cl.Friendships.Create(
-			&twitter.FriendshipCreateParams{ScreenName: acc.username})
+			&twitter.FriendshipCreateParams{ScreenName: a.username})
 		if err != nil {
 			resp, _ := io.ReadAll(res.Body)
 			logger.Error("Couldn't follow friend", err, string(resp))
