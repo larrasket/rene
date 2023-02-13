@@ -13,10 +13,10 @@ CREATE TABLE IF NOT EXISTS accounts
     account_secret TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS queue
-(
-    id      INTEGER PRIMARY KEY,
-    account TEXT,
-    text    TEXT,
-    CONSTRAINT fk_accounts FOREIGN KEY (account) REFERENCES accounts (username)
-);
+-- CREATE TABLE IF NOT EXISTS queue
+-- (
+--     id      INTEGER PRIMARY KEY,
+--     account TEXT,
+--     text    TEXT,
+--     CONSTRAINT fk_accounts FOREIGN KEY (account) REFERENCES accounts (username)
+-- );
