@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/dghubble/go-twitter/twitter"
 )
 
 func ModUserId(client *http.Client) (string, error) {
@@ -33,7 +35,7 @@ func ModUserId(client *http.Client) (string, error) {
 	}
 	var tdata map[string]json.RawMessage
 	err = json.Unmarshal(data["data"], &tdata)
-	return string(tdata["id"]), err
+	return string(tdata["id"][1 : len(tdata["id"])-1]), err
 }
 
 func GetDMs(client *http.Client, userID string) ([]DM, error) {
@@ -48,6 +50,7 @@ func GetDMs(client *http.Client, userID string) ([]DM, error) {
 	if res.StatusCode != http.StatusOK {
 		return nil, errors.New(string(p))
 	}
+	defer res.Body.Close()
 
 	var data map[string]json.RawMessage
 	err = json.Unmarshal(p, &data)
@@ -79,11 +82,13 @@ func Tweet(acc *account, ctx context.Context, cancel context.CancelCauseFunc) {
 		return
 	}
 	last, err := getLastDM(acc)
+
 	if err != nil {
 		cancel(err)
 		return
 	}
-	tick := time.NewTicker(5 * time.Minute)
+	tick := time.NewTicker(2 * time.Second)
+	cl := twitter.NewClient(acc.client)
 	for range tick.C {
 		DM, err := getLastDM(acc)
 		if err != nil {
@@ -93,7 +98,42 @@ func Tweet(acc *account, ctx context.Context, cancel context.CancelCauseFunc) {
 		}
 		if last == nil || DM.ID != last.ID {
 			last = DM
+			if len(DM.Text) > 280 {
+				tweets, err := MakeThread(DM.Text)
+				if err != nil {
+					logger.Error(
+						`Error when calling python script to make thread`, err)
+				} else {
+					tw, res, err := cl.Statuses.Update(tweets[0], nil)
+					for i := 1; i < len(tweets); i++ {
+						if err != nil {
+							msg, _ := io.ReadAll(res.Body)
+							defer res.Body.Close()
+							logger.Error(fmt.Sprintf(
+								`Couldn't send tweet from account %s`, acc.username),
+								err, msg)
+							break
+						}
+						logger.Info(fmt.Sprintf(`Tweeted just now on %s. Tweet ID: %d`,
+							acc.username, tw.ID))
+						tw, res, err = cl.Statuses.Update(tweets[i],
+							&twitter.StatusUpdateParams{InReplyToStatusID: tw.ID})
+					}
+				}
+			} else {
+				tw, res, err := cl.Statuses.Update(DM.Text, nil)
+				if err != nil {
+					msg, _ := io.ReadAll(res.Body)
+					defer res.Body.Close()
+					logger.Error(fmt.Sprintf(
+						`Couldn't send tweet from account %s`, acc.username),
+						err, msg)
+				} else {
+					logger.Info(fmt.Sprintf(`Tweeted just now on %s. Tweet ID: %d`,
+						acc.username, tw.ID))
+				}
 
+			}
 		}
 	}
 }
@@ -106,6 +146,5 @@ func getLastDM(acc *account) (*DM, error) {
 	if len(DMs) == 0 {
 		return nil, err
 	}
-	return &DMs[len(DMs)-1], err
-
+	return &DMs[0], err
 }

@@ -1,7 +1,9 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
+	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
@@ -60,4 +62,23 @@ func (f *field) FieldReader() error {
 	}
 	return nil
 
+}
+
+//go:embed python/twitter_slicer.py
+var twitter_slicer string
+
+func MakeThread(text string) ([]string, error) {
+	cmd := exec.Command("python3", "-c", fmt.Sprintf(twitter_slicer, text))
+	out, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+	tweets := strings.Split(string(out), "SEP")
+	var res []string
+	for _, value := range tweets {
+		if len(value) != 0 {
+			res = append(res, strings.TrimSuffix(value, "\n"))
+		}
+	}
+	return res, err
 }

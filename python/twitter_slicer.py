@@ -1,3 +1,5 @@
+import sys
+
 class SliceMode:
     def __init__(self, text_list, with_counter):
         self.text_list = text_list
@@ -139,7 +141,8 @@ class SliceMode:
 
 
 
-text = "%s"
+text = """ %s """
+
 
 
 
@@ -149,3 +152,6 @@ tweets = SliceMode(text_list, True).punct()
 for i in range(0, len(tweets)):
      print(tweets[i])
      print("SEP")
+
+
+sys.exit(0)
