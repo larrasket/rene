@@ -70,14 +70,42 @@ type DM struct {
 var getModID sync.Once
 var modID string
 
-func DbDump(acc *account, ctx context.Context, cancel context.CancelCauseFunc) {
+func Tweet(acc *account, ctx context.Context, cancel context.CancelCauseFunc) {
 	var err error
 	getModID.Do(func() { modID, err = ModUserId(acc.client) })
+	if err != nil {
+		cancel(fmt.Errorf(`Something got wrong while getting moderator ID: %s`,
+			err))
+		return
+	}
+	last, err := getLastDM(acc)
 	if err != nil {
 		cancel(err)
 		return
 	}
-	tick := time.NewTicker(5 * time.Second)
+	tick := time.NewTicker(5 * time.Minute)
 	for range tick.C {
+		DM, err := getLastDM(acc)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Couldn't get DMs for account: %s",
+				acc.username), err)
+			continue
+		}
+		if last == nil || DM.ID != last.ID {
+			last = DM
+
+		}
 	}
+}
+
+func getLastDM(acc *account) (*DM, error) {
+	DMs, err := GetDMs(acc.client, modID)
+	if err != nil {
+		return nil, fmt.Errorf(`Something got wrong in getting DMs: %s`, err)
+	}
+	if len(DMs) == 0 {
+		return nil, err
+	}
+	return &DMs[len(DMs)-1], err
+
 }

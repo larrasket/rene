@@ -14,10 +14,20 @@ func ListenAndServe() {
 		Accounts[k].client = AuthConfig.Client(oauth1.NoContext, token)
 		select {
 		case <-ctx.Done():
-			logger.Error(`Something wrong happened while reading from DMs`,
+			logger.Error(`Something wrong happened`,
 				context.Cause(ctx))
+			return
 		default:
 		}
-		go DbDump(&Accounts[k], ctx, cancel) // add DMs to database
+		go Tweet(&Accounts[k], ctx, cancel)
+	}
+
+	select {
+	case <-ctx.Done():
+		if context.Cause(ctx) != nil {
+			logger.Error(`Something wrong happened while reading from DMs`,
+				context.Cause(ctx))
+			return
+		}
 	}
 }
